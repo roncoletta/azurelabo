@@ -1,0 +1,36 @@
+
+pool:
+  name: Default
+
+steps:
+- script:
+    terraform init -backend-config="resource_group_name=$(TF_STATE_BLOB_RESOURCE_NAME)" -backend-config="storage_account_name=$(TF_STATE_BLOB_ACCOUNT_NAME)" -backend-config="container_name=$(TF_STATE_BLOB_CONTAINER_NAME)" -backend-config="key=$(TF_STATE_BLOB_FILE)"
+  displayName: 'Terraform init'
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    resource_group_name: $(rg-tfstate)
+  workingDirectory: tf-sa-tfstate
+  
+- script:    
+    terraform plan -out tfplan -input=false
+  displayName: 'Terraform plan' 
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+    TF_IN_AUTOMATION: true
+  workingDirectory: tf-sa-tfstate
+
+- script: 
+    terraform apply tfplan
+  displayName: 'Terraform apply'
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
+  workingDirectory: tf-sa-tfstate
